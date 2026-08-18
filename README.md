@@ -5,6 +5,15 @@ app with a Fastify API. Users select a canonical location, choose an available
 weather provider, and receive normalized current, hourly, daily, air-quality,
 and pollen data according to that provider's real capabilities.
 
+## Technology
+
+- React, TypeScript, Vite, and a service worker for the installable PWA.
+- Fastify and Zod for the provider-neutral HTTP API and validated contracts.
+- pnpm workspaces and Turborepo for the monorepo build and test pipeline.
+- Redis for shared production caching and atomic provider budgets, hosted by
+  Upstash on Vercel.
+- Separate Vercel projects for the web application and API.
+
 ## Live application
 
 - Web PWA: [sun.slpixe.com](https://sun.slpixe.com)
