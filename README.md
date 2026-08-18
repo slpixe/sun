@@ -5,6 +5,8 @@ app with a Fastify API. Users select a canonical location, choose an available
 weather provider, and receive normalized current, hourly, daily, air-quality,
 and pollen data according to that provider's real capabilities.
 
+[![Sun weather forecast for London](docs/images/sun-weather.jpg)](https://sun.slpixe.com)
+
 ## Technology
 
 - React, TypeScript, Vite, and a service worker for the installable PWA.
