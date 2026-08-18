@@ -1,0 +1,33 @@
+{
+  "name": "@weather/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "node --env-file=../../.env --watch --import tsx src/server.ts",
+    "start": "node --env-file-if-exists=../../.env dist/server.js",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.0.0",
+    "@weather/contracts": "workspace:*",
+    "@weather/provider-core": "workspace:*",
+    "@weather/provider-met-norway": "workspace:*",
+    "@weather/provider-met-office": "workspace:*",
+    "@weather/provider-open-meteo": "workspace:*",
+    "@weather/provider-openweather": "workspace:*",
+    "@weather/provider-pirate-weather": "workspace:*",
+    "@weather/provider-tomorrow-io": "workspace:*",
+    "@weather/provider-visual-crossing": "workspace:*",
+    "@weather/provider-weatherapi": "workspace:*",
+    "@weather/provider-weatherbit": "workspace:*",
+    "fastify": "^5.0.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.0",
+    "vitest": "^3.0.0"
+  }
+}

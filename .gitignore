@@ -1,0 +1,14 @@
+node_modules/
+.pnpm-store/
+dist/
+storybook-static/
+debug-storybook.log
+.turbo/
+.vite/
+coverage/
+*.tsbuildinfo
+*.local
+.env
+.env.*
+!.env.example
+.vercel
