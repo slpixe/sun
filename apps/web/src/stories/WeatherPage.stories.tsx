@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useEffect, useState } from "react";
 
-import { WeatherPage } from "../WeatherPage.js";
+import { WeatherPage, type WeatherPageProps } from "../WeatherPage.js";
 import {
   mockProviders,
   mockSearchResults,
@@ -10,9 +11,42 @@ import {
 
 const noop = () => undefined;
 
+function InteractiveWeatherPage(args: WeatherPageProps) {
+  const [query, setQuery] = useState(args.query);
+
+  useEffect(() => setQuery(args.query), [args.query]);
+
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  const results = normalizedQuery
+    ? mockSearchResults
+        .filter((location) =>
+          location.displayName.toLocaleLowerCase().includes(normalizedQuery),
+        )
+        .slice(0, 2)
+    : [];
+
+  return (
+    <WeatherPage
+      {...args}
+      query={query}
+      results={results}
+      searchState={normalizedQuery ? "success" : "idle"}
+      onQueryChange={(value) => {
+        setQuery(value);
+        args.onQueryChange(value);
+      }}
+      onSelectLocation={(location) => {
+        setQuery("");
+        args.onSelectLocation(location);
+      }}
+    />
+  );
+}
+
 const meta = {
   title: "Pages/Weather",
   component: WeatherPage,
+  render: (args) => <InteractiveWeatherPage {...args} />,
   args: {
     query: "",
     results: [],

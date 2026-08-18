@@ -88,6 +88,20 @@ export interface LocationPickerProps {
   onUseCurrentLocation(): void;
 }
 
+function DeviceLocationIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <circle cx="12" cy="12" r="6.5" />
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+      <circle className="device-location-icon-dot" cx="12" cy="12" r="2" />
+    </svg>
+  );
+}
+
 export function LocationPicker({
   query,
   results,
@@ -115,8 +129,14 @@ export function LocationPicker({
           aria-expanded={results.length > 0}
           onChange={(event) => onQueryChange(event.target.value)}
         />
-        <button type="button" onClick={onUseCurrentLocation}>
-          Use my location
+        <button
+          type="button"
+          className="device-location-button"
+          aria-label="Use device location"
+          title="Use device location"
+          onClick={onUseCurrentLocation}
+        >
+          <DeviceLocationIcon />
         </button>
       </div>
       <div id={resultsId} className="search-results" role="listbox">
@@ -265,30 +285,32 @@ export function WeatherPage({
   return (
     <main className="shell">
       <section className="hero">
-        <LocationPicker
-          query={query}
-          results={results}
-          searchState={searchState}
-          showQuickLocations={selected === undefined}
-          {...(locationMessage === undefined ? {} : { message: locationMessage })}
-          onQueryChange={onQueryChange}
-          onSelectLocation={onSelectLocation}
-          onUseCurrentLocation={onUseCurrentLocation}
-        />
+        <div className={`page-controls${selected ? " has-provider" : ""}`}>
+          <LocationPicker
+            query={query}
+            results={results}
+            searchState={searchState}
+            showQuickLocations={selected === undefined}
+            {...(locationMessage === undefined ? {} : { message: locationMessage })}
+            onQueryChange={onQueryChange}
+            onSelectLocation={onSelectLocation}
+            onUseCurrentLocation={onUseCurrentLocation}
+          />
+          {selected && (
+            <ProviderChooser
+              providers={providers}
+              selectedProviderId={selected.providerId}
+              {...(providerMessage === undefined
+                ? {}
+                : { message: providerMessage })}
+              onSelect={onSelectProvider}
+            />
+          )}
+        </div>
         {selected && (
           <SelectedLocationCard
             selected={selected}
             {...(currentInstant === undefined ? {} : { currentInstant })}
-          />
-        )}
-        {selected && (
-          <ProviderChooser
-            providers={providers}
-            selectedProviderId={selected.providerId}
-            {...(providerMessage === undefined
-              ? {}
-              : { message: providerMessage })}
-            onSelect={onSelectProvider}
           />
         )}
         {selected && forecastState === "loading" && <ForecastLoading />}

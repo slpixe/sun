@@ -97,24 +97,20 @@ export function ProviderChooser({
   return (
     <>
       <section className="provider-control" aria-label="Weather provider">
-        <button
-          type="button"
-          className="provider-trigger"
-          aria-haspopup="dialog"
-          disabled={providers.length === 0}
-          onClick={() => setOpen(true)}
-        >
-          <span className="provider-trigger-label">Weather provider</span>
+        <span className="provider-control-label">Weather provider</span>
+        <div className="provider-summary">
           <strong>{selectedProvider?.name ?? selectedProviderId}</strong>
-          <span className="provider-trigger-profile">
-            {selectedProvider === undefined
-              ? "Loading provider information…"
-              : providerProfileLabel(selectedProvider)}
-          </span>
-          <span className="provider-trigger-action">
-            Compare & change <span aria-hidden="true">↗</span>
-          </span>
-        </button>
+          <button
+            type="button"
+            className="provider-change-button"
+            aria-haspopup="dialog"
+            aria-label="Change weather provider"
+            disabled={providers.length === 0}
+            onClick={() => setOpen(true)}
+          >
+            Change <span aria-hidden="true">↗</span>
+          </button>
+        </div>
         {message && <small className="provider-message">{message}</small>}
       </section>
 
