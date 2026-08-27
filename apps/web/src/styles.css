@@ -148,7 +148,8 @@ button {
 }
 
 .device-location-button:hover,
-.search-results button:hover {
+.search-results button:hover,
+.search-results button[aria-selected="true"] {
   border-color: #76c7ff;
   background: #194665;
 }

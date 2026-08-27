@@ -5,7 +5,7 @@ import type {
   SavedLocation,
   WeatherResponse,
 } from "@weather/contracts";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useState, type KeyboardEvent } from "react";
 
 import { ProviderChooser } from "./ProviderChooser.js";
 import { WeatherView } from "./WeatherView.js";
@@ -88,6 +88,16 @@ export interface LocationPickerProps {
   onUseCurrentLocation(): void;
 }
 
+export function nextActiveResultIndex(
+  currentIndex: number,
+  resultCount: number,
+  direction: 1 | -1,
+) {
+  if (resultCount === 0) return -1;
+  if (currentIndex < 0) return direction === 1 ? 0 : resultCount - 1;
+  return (currentIndex + direction + resultCount) % resultCount;
+}
+
 function DeviceLocationIcon() {
   return (
     <svg
@@ -113,6 +123,39 @@ export function LocationPicker({
   onUseCurrentLocation,
 }: LocationPickerProps) {
   const resultsId = useId();
+  const [activeResultIndex, setActiveResultIndex] = useState(-1);
+  const activeResult = results[activeResultIndex];
+
+  useEffect(() => {
+    setActiveResultIndex(-1);
+  }, [query, results]);
+
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      if (results.length === 0) return;
+      event.preventDefault();
+      setActiveResultIndex((currentIndex) =>
+        nextActiveResultIndex(
+          currentIndex,
+          results.length,
+          event.key === "ArrowDown" ? 1 : -1,
+        ),
+      );
+      return;
+    }
+
+    if (event.key === "Enter" && activeResult !== undefined) {
+      event.preventDefault();
+      onSelectLocation(activeResult);
+      return;
+    }
+
+    if (event.key === "Escape" && activeResultIndex >= 0) {
+      event.preventDefault();
+      setActiveResultIndex(-1);
+    }
+  }
+
   return (
     <div className="location-picker">
       <label htmlFor={`${resultsId}-search`}>Find a place</label>
@@ -127,7 +170,14 @@ export function LocationPicker({
           aria-autocomplete="list"
           aria-controls={resultsId}
           aria-expanded={results.length > 0}
-          onChange={(event) => onQueryChange(event.target.value)}
+          {...(activeResult === undefined
+            ? {}
+            : { "aria-activedescendant": `${resultsId}-option-${activeResultIndex}` })}
+          onChange={(event) => {
+            setActiveResultIndex(-1);
+            onQueryChange(event.target.value);
+          }}
+          onKeyDown={handleKeyDown}
         />
         <button
           type="button"
@@ -140,12 +190,14 @@ export function LocationPicker({
         </button>
       </div>
       <div id={resultsId} className="search-results" role="listbox">
-        {results.map((location) => (
+        {results.map((location, index) => (
           <button
             key={location.id}
+            id={`${resultsId}-option-${index}`}
             type="button"
             role="option"
-            aria-selected="false"
+            aria-selected={activeResultIndex === index}
+            onMouseEnter={() => setActiveResultIndex(index)}
             onClick={() => onSelectLocation(location)}
           >
             <span>{location.displayName}</span>
