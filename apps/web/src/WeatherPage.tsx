@@ -5,8 +5,19 @@ import type {
   SavedLocation,
   WeatherResponse,
 } from "@weather/contracts";
-import { useEffect, useId, useState, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 
+import {
+  isEditableTarget,
+  isUnmodifiedShortcut,
+  type KeyboardShortcutEvent,
+} from "./keyboard-shortcuts.js";
 import { ProviderChooser } from "./ProviderChooser.js";
 import { WeatherView } from "./WeatherView.js";
 
@@ -98,6 +109,10 @@ export function nextActiveResultIndex(
   return (currentIndex + direction + resultCount) % resultCount;
 }
 
+export function isLocationSearchShortcut(event: KeyboardShortcutEvent) {
+  return isUnmodifiedShortcut(event, "/");
+}
+
 function DeviceLocationIcon() {
   return (
     <svg
@@ -123,14 +138,33 @@ export function LocationPicker({
   onUseCurrentLocation,
 }: LocationPickerProps) {
   const resultsId = useId();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [activeResultIndex, setActiveResultIndex] = useState(-1);
   const activeResult = results[activeResultIndex];
+
+  useEffect(() => {
+    function handleShortcut(event: globalThis.KeyboardEvent) {
+      if (
+        !isLocationSearchShortcut(event) ||
+        isEditableTarget(event.target) ||
+        searchInputRef.current === null
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      searchInputRef.current.focus();
+    }
+
+    document.addEventListener("keydown", handleShortcut);
+    return () => document.removeEventListener("keydown", handleShortcut);
+  }, []);
 
   useEffect(() => {
     setActiveResultIndex(-1);
   }, [query, results]);
 
-  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+  function handleKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       if (results.length === 0) return;
       event.preventDefault();
@@ -158,9 +192,22 @@ export function LocationPicker({
 
   return (
     <div className="location-picker">
-      <label htmlFor={`${resultsId}-search`}>Find a place</label>
+      <label
+        className="location-search-label control-label-with-shortcut"
+        htmlFor={`${resultsId}-search`}
+      >
+        <span>Find a place</span>
+        <kbd
+          className="keyboard-shortcut"
+          aria-hidden="true"
+          title="Press / to search"
+        >
+          /
+        </kbd>
+      </label>
       <div className="search-row">
         <input
+          ref={searchInputRef}
           id={`${resultsId}-search`}
           type="search"
           value={query}
@@ -168,6 +215,7 @@ export function LocationPicker({
           autoComplete="off"
           role="combobox"
           aria-autocomplete="list"
+          aria-keyshortcuts="/"
           aria-controls={resultsId}
           aria-expanded={results.length > 0}
           {...(activeResult === undefined

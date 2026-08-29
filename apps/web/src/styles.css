@@ -77,6 +77,35 @@ button {
   text-transform: uppercase;
 }
 
+.location-picker > .control-label-with-shortcut,
+.provider-control > .control-label-with-shortcut {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.keyboard-shortcut {
+  min-width: 1.6rem;
+  border: 1px solid rgb(143 202 239 / 28%);
+  border-radius: 0.4rem;
+  padding: 0.15rem 0.4rem;
+  color: #b9d8ee;
+  background: rgb(18 50 74 / 72%);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 8%);
+  font: inherit;
+  letter-spacing: 0;
+  line-height: 1;
+  text-align: center;
+  text-transform: none;
+}
+
+@media (pointer: coarse) {
+  .keyboard-shortcut {
+    display: none;
+  }
+}
+
 .search-row {
   position: relative;
 }

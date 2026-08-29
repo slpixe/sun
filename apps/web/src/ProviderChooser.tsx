@@ -1,11 +1,21 @@
 import type { ProviderDescriptor } from "@weather/contracts";
 import { useEffect, useRef, useState } from "react";
 
+import {
+  isEditableTarget,
+  isUnmodifiedShortcut,
+  type KeyboardShortcutEvent,
+} from "./keyboard-shortcuts.js";
+
 interface ProviderChooserProps {
   providers: ProviderDescriptor[];
   selectedProviderId: string;
   message?: string;
   onSelect(providerId: string): void;
+}
+
+export function isProviderShortcut(event: KeyboardShortcutEvent) {
+  return isUnmodifiedShortcut(event, "p");
 }
 
 const CAPABILITY_LABELS = [
@@ -89,6 +99,25 @@ export function ProviderChooser({
     if (!open && dialog.open) dialog.close();
   }, [open]);
 
+  useEffect(() => {
+    function handleShortcut(event: globalThis.KeyboardEvent) {
+      if (
+        providers.length === 0 ||
+        dialogRef.current?.open ||
+        !isProviderShortcut(event) ||
+        isEditableTarget(event.target)
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      setOpen(true);
+    }
+
+    document.addEventListener("keydown", handleShortcut);
+    return () => document.removeEventListener("keydown", handleShortcut);
+  }, [providers.length]);
+
   function choose(providerId: string) {
     onSelect(providerId);
     setOpen(false);
@@ -97,13 +126,23 @@ export function ProviderChooser({
   return (
     <>
       <section className="provider-control" aria-label="Weather provider">
-        <span className="provider-control-label">Weather provider</span>
+        <span className="provider-control-label control-label-with-shortcut">
+          <span>Weather provider</span>
+          <kbd
+            className="keyboard-shortcut"
+            aria-hidden="true"
+            title="Press P to change provider"
+          >
+            P
+          </kbd>
+        </span>
         <div className="provider-summary">
           <strong>{selectedProvider?.name ?? selectedProviderId}</strong>
           <button
             type="button"
             className="provider-change-button"
             aria-haspopup="dialog"
+            aria-keyshortcuts="p"
             aria-label="Change weather provider"
             disabled={providers.length === 0}
             onClick={() => setOpen(true)}

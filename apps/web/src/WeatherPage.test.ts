@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { nextActiveResultIndex } from "./WeatherPage.js";
+import {
+  isLocationSearchShortcut,
+  nextActiveResultIndex,
+} from "./WeatherPage.js";
 
 describe("nextActiveResultIndex", () => {
   it("starts at the first result when moving down", () => {
@@ -18,5 +21,21 @@ describe("nextActiveResultIndex", () => {
 
   it("does not activate a result when the list is empty", () => {
     expect(nextActiveResultIndex(-1, 0, 1)).toBe(-1);
+  });
+});
+
+describe("isLocationSearchShortcut", () => {
+  it("recognizes an unmodified forward slash", () => {
+    expect(isLocationSearchShortcut({ key: "/" })).toBe(true);
+  });
+
+  it("ignores other keys, modifiers, and handled events", () => {
+    expect(isLocationSearchShortcut({ key: "f" })).toBe(false);
+    expect(isLocationSearchShortcut({ key: "/", ctrlKey: true })).toBe(false);
+    expect(isLocationSearchShortcut({ key: "/", metaKey: true })).toBe(false);
+    expect(isLocationSearchShortcut({ key: "/", altKey: true })).toBe(false);
+    expect(
+      isLocationSearchShortcut({ key: "/", defaultPrevented: true }),
+    ).toBe(false);
   });
 });
