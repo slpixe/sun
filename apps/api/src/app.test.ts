@@ -175,6 +175,8 @@ describe("API", () => {
     });
 
     expect(response.statusCode).toBe(200);
+    expect(response.headers["cache-control"]).toContain("max-age=300");
+    expect(response.headers["cache-control"]).toContain("s-maxage=86400");
     expect(response.json()).toEqual([
       expect.objectContaining({ id: "open-meteo", name: "Open-Meteo" }),
     ]);

@@ -135,11 +135,15 @@ export function buildApp(options: AppOptions = {}) {
 
   app.get("/health", async () => ({ status: "ok" as const }));
 
-  app.get("/v1/providers", async () =>
-    ProvidersResponseSchema.parse(
+  app.get("/v1/providers", async (_request, reply) => {
+    reply.header(
+      "cache-control",
+      "public, max-age=300, s-maxage=86400, stale-while-revalidate=604800",
+    );
+    return ProvidersResponseSchema.parse(
       weatherProviders.map((provider) => provider.descriptor),
-    ),
-  );
+    );
+  });
 
   app.get("/v1/weather", async (request, reply) => {
     const query = WeatherQuerySchema.safeParse(request.query);

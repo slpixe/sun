@@ -163,115 +163,117 @@ export function ProviderChooser({
           if (event.target === event.currentTarget) setOpen(false);
         }}
       >
-        <div className="provider-dialog-surface">
-          <header className="provider-dialog-header">
-            <div>
-              <p className="card-label">Forecast sources</p>
-              <h2 id="provider-dialog-title">Choose your weather provider</h2>
-              <p>
-                Compare coverage, forecast granularity, and the extra data each
-                source can supply.
-              </p>
-            </div>
-            <button
-              type="button"
-              className="provider-dialog-close"
-              aria-label="Close provider comparison"
-              onClick={() => setOpen(false)}
-            >
-              <span aria-hidden="true">×</span>
-            </button>
-          </header>
+        {open && (
+          <div className="provider-dialog-surface">
+            <header className="provider-dialog-header">
+              <div>
+                <p className="card-label">Forecast sources</p>
+                <h2 id="provider-dialog-title">Choose your weather provider</h2>
+                <p>
+                  Compare coverage, forecast granularity, and the extra data each
+                  source can supply.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="provider-dialog-close"
+                aria-label="Close provider comparison"
+                onClick={() => setOpen(false)}
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            </header>
 
-          <div className="provider-dialog-content">
-            <div className="provider-legend" aria-label="Availability legend">
-              <span><i className="is-available" /> Available in this app</span>
-              <span><i className="is-not-connected" /> Provider offers it; not connected</span>
-              <span><i className="is-unavailable" /> Unavailable</span>
-            </div>
+            <div className="provider-dialog-content">
+              <div className="provider-legend" aria-label="Availability legend">
+                <span><i className="is-available" /> Available in this app</span>
+                <span><i className="is-not-connected" /> Provider offers it; not connected</span>
+                <span><i className="is-unavailable" /> Unavailable</span>
+              </div>
 
-            <div className="provider-grid">
-              {providers.map((provider) => {
-                const isSelected = provider.id === selectedProviderId;
-                return (
-                  <article
-                    key={provider.id}
-                    className={`provider-card${isSelected ? " is-selected" : ""}`}
-                  >
-                    <header>
-                      <div>
-                        <div className="provider-name-row">
-                          <h3>{provider.name}</h3>
-                          {isSelected && <span>Selected</span>}
+              <div className="provider-grid">
+                {providers.map((provider) => {
+                  const isSelected = provider.id === selectedProviderId;
+                  return (
+                    <article
+                      key={provider.id}
+                      className={`provider-card${isSelected ? " is-selected" : ""}`}
+                    >
+                      <header>
+                        <div>
+                          <div className="provider-name-row">
+                            <h3>{provider.name}</h3>
+                            {isSelected && <span>Selected</span>}
+                          </div>
+                          <p>{providerProfileLabel(provider)}</p>
                         </div>
-                        <p>{providerProfileLabel(provider)}</p>
-                      </div>
-                    </header>
+                      </header>
 
-                    <section className="provider-feature-group">
-                      <h4>Forecast coverage</h4>
-                      <ul>
-                        {CAPABILITY_LABELS.map(([key, label, integrated]) => {
-                          const available = provider.capabilities[key];
-                          const status = !available
-                            ? { label: "Unavailable", className: "is-unavailable" }
-                            : integrated
-                              ? { label: "Available", className: "is-available" }
-                              : { label: "Not connected", className: "is-not-connected" };
-                          return (
-                            <li key={key}>
-                              <span>{label}</span>
-                              <strong className={status.className}>{status.label}</strong>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </section>
-
-                    <section className="provider-feature-group">
-                      <h4>Weather details</h4>
-                      <ul>
-                        {provider.featureProfile === undefined ? (
-                          <li><span>Detailed comparison</span><em>Not documented yet</em></li>
-                        ) : (
-                          FEATURE_LABELS.map(([key, label]) => {
-                            const feature = provider.featureProfile?.[key];
-                            if (feature === undefined) return null;
-                            const status = featureStatus(feature);
+                      <section className="provider-feature-group">
+                        <h4>Forecast coverage</h4>
+                        <ul>
+                          {CAPABILITY_LABELS.map(([key, label, integrated]) => {
+                            const available = provider.capabilities[key];
+                            const status = !available
+                              ? { label: "Unavailable", className: "is-unavailable" }
+                              : integrated
+                                ? { label: "Available", className: "is-available" }
+                                : { label: "Not connected", className: "is-not-connected" };
                             return (
-                              <li key={key} className="provider-feature-detail">
-                                <span>
-                                  {label}
-                                  <small>{sourceLabel(feature.source)} · {feature.detail}</small>
-                                </span>
+                              <li key={key}>
+                                <span>{label}</span>
                                 <strong className={status.className}>{status.label}</strong>
                               </li>
                             );
-                          })
-                        )}
-                      </ul>
-                    </section>
+                          })}
+                        </ul>
+                      </section>
 
-                    <button
-                      type="button"
-                      className="provider-choose-button"
-                      disabled={isSelected}
-                      onClick={() => choose(provider.id)}
-                    >
-                      {isSelected ? "Using this provider" : `Use ${provider.name}`}
-                    </button>
-                  </article>
-                );
-              })}
+                      <section className="provider-feature-group">
+                        <h4>Weather details</h4>
+                        <ul>
+                          {provider.featureProfile === undefined ? (
+                            <li><span>Detailed comparison</span><em>Not documented yet</em></li>
+                          ) : (
+                            FEATURE_LABELS.map(([key, label]) => {
+                              const feature = provider.featureProfile?.[key];
+                              if (feature === undefined) return null;
+                              const status = featureStatus(feature);
+                              return (
+                                <li key={key} className="provider-feature-detail">
+                                  <span>
+                                    {label}
+                                    <small>{sourceLabel(feature.source)} · {feature.detail}</small>
+                                  </span>
+                                  <strong className={status.className}>{status.label}</strong>
+                                </li>
+                              );
+                            })
+                          )}
+                        </ul>
+                      </section>
+
+                      <button
+                        type="button"
+                        className="provider-choose-button"
+                        disabled={isSelected}
+                        onClick={() => choose(provider.id)}
+                      >
+                        {isSelected ? "Using this provider" : `Use ${provider.name}`}
+                      </button>
+                    </article>
+                  );
+                })}
+              </div>
+
+              <p className="provider-dialog-note">
+                Changing provider keeps your selected location. Forecast values
+                can differ because providers use different models, grids, and
+                update schedules.
+              </p>
             </div>
-
-            <p className="provider-dialog-note">
-              Changing provider keeps your selected location. Forecast values
-              can differ because providers use different models, grids, and
-              update schedules.
-            </p>
           </div>
-        </div>
+        )}
       </dialog>
     </>
   );

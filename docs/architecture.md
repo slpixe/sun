@@ -28,11 +28,17 @@ place search -> canonical location -> selected provider adapter
   temperature results and must not be re-enabled without a new investigation.
 - Plan-dependent combined methods are registered only when configured access is known to support their fields. Tomorrow.io AQ is therefore capability-gated instead of probing a restricted field set on every user request.
 - User-selected locations, providers, preferences, and last-known responses live in IndexedDB.
+- The browser weather cache removes responses after `staleAfter` and retains at
+  most the 24 most recently fetched provider/location responses. Preferences and
+  the selected location are not subject to that limit.
 - Static PWA resources use service-worker Cache Storage.
 - Production weather caching uses the optional Upstash Redis REST adapter so cache entries and provider-budget counters are shared across serverless instances; process memory remains the development fallback.
 - There is no server-side database initially.
 - Provider selection is explicit. An adapter must not silently substitute a different provider.
 - The provider registry contains every configured adapter. The API routes by provider ID, and the browser persists that selection independently for each saved forecast cache key.
+- Provider-registry responses are browser-cacheable for five minutes and
+  CDN-cacheable for one day because configured provider availability changes
+  only with API runtime configuration or deployment.
 - Field availability and granularity remain explicit. Adapters must preserve whether data is current, hourly, or daily and whether it represents a point/grid, city, region, or wider model domain. The UI may label that provenance; it must not imply finer temporal or spatial precision than the provider supplies.
 
 ## Location flow

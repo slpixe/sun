@@ -58,6 +58,7 @@ export function App() {
   const [forecastState, setForecastState] = useState<ForecastState>("idle");
   const [forecastMessage, setForecastMessage] = useState("");
   const [providers, setProviders] = useState<ProviderDescriptor[]>([]);
+  const [providersLoaded, setProvidersLoaded] = useState(false);
   const [providerMessage, setProviderMessage] = useState("");
 
   useEffect(() => {
@@ -65,10 +66,12 @@ export function App() {
     void fetchProviders(controller.signal)
       .then((availableProviders) => {
         setProviders(availableProviders);
+        setProvidersLoaded(true);
         setProviderMessage("");
       })
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
+        setProvidersLoaded(true);
         setProviderMessage("Provider choices could not be loaded.");
       });
     return () => controller.abort();
@@ -124,7 +127,7 @@ export function App() {
   }, [query]);
 
   useEffect(() => {
-    if (!selected) return undefined;
+    if (!selected || !providersLoaded) return undefined;
     if (
       providers.length > 0 &&
       !providers.some((provider) => provider.id === selected.providerId)
@@ -222,7 +225,7 @@ export function App() {
       active = false;
       controller.abort();
     };
-  }, [providers, selected]);
+  }, [providers, providersLoaded, selected]);
 
   async function selectLocation(location: ResolvedLocation) {
     const savedLocation: SavedLocation = {

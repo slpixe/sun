@@ -10,8 +10,90 @@ const DATABASE_VERSION = 2;
 const STORE_NAME = "preferences";
 const WEATHER_STORE_NAME = "weather-responses";
 const SELECTED_LOCATION_KEY = "selected-location";
+export const MAX_STORED_WEATHER_RESPONSES = 24;
+
+export interface StoredWeatherEntry {
+  key: IDBValidKey;
+  value: unknown;
+}
 
 let databasePromise: Promise<IDBDatabase> | undefined;
+
+function metadataTimestamp(
+  value: unknown,
+  key: "fetchedAt" | "staleAfter",
+): number | undefined {
+  if (typeof value !== "object" || value === null) return undefined;
+  const metadata = (value as { metadata?: unknown }).metadata;
+  if (typeof metadata !== "object" || metadata === null) return undefined;
+  const timestamp = (metadata as Record<string, unknown>)[key];
+  if (typeof timestamp !== "string") return undefined;
+  const parsed = Date.parse(timestamp);
+  return Number.isNaN(parsed) ? undefined : parsed;
+}
+
+export function weatherKeysToEvict(
+  entries: readonly StoredWeatherEntry[],
+  now = Date.now(),
+  maximumEntries = MAX_STORED_WEATHER_RESPONSES,
+  protectedKey?: IDBValidKey,
+): IDBValidKey[] {
+  const keysToEvict: IDBValidKey[] = [];
+  const retained: { key: IDBValidKey; fetchedAt: number }[] = [];
+
+  for (const entry of entries) {
+    const staleAfter = metadataTimestamp(entry.value, "staleAfter");
+    const fetchedAt = metadataTimestamp(entry.value, "fetchedAt");
+    if (
+      staleAfter === undefined ||
+      staleAfter <= now ||
+      fetchedAt === undefined
+    ) {
+      keysToEvict.push(entry.key);
+      continue;
+    }
+    retained.push({ key: entry.key, fetchedAt });
+  }
+
+  retained.sort((left, right) => right.fetchedAt - left.fetchedAt);
+  const protectedEntry = retained.find((entry) => entry.key === protectedKey);
+  const unprotectedEntries = retained.filter(
+    (entry) => entry !== protectedEntry,
+  );
+  const unprotectedLimit = Math.max(
+    0,
+    maximumEntries - (protectedEntry === undefined ? 0 : 1),
+  );
+  keysToEvict.push(
+    ...unprotectedEntries.slice(unprotectedLimit).map((entry) => entry.key),
+  );
+  return keysToEvict;
+}
+
+function pruneWeatherStore(
+  store: IDBObjectStore,
+  protectedKey: IDBValidKey,
+): void {
+  const entries: StoredWeatherEntry[] = [];
+  const request = store.openCursor();
+  request.addEventListener("success", () => {
+    const cursor = request.result;
+    if (cursor !== null) {
+      entries.push({ key: cursor.primaryKey, value: cursor.value });
+      cursor.continue();
+      return;
+    }
+
+    for (const key of weatherKeysToEvict(
+      entries,
+      Date.now(),
+      MAX_STORED_WEATHER_RESPONSES,
+      protectedKey,
+    )) {
+      store.delete(key);
+    }
+  });
+}
 
 function openDatabase(): Promise<IDBDatabase> {
   databasePromise ??= new Promise((resolve, reject) => {
@@ -99,11 +181,12 @@ export async function saveWeather(
 ): Promise<void> {
   const database = await openDatabase();
   const validated = WeatherResponseSchema.parse(weather);
+  const key = weatherKey(location);
   await new Promise<void>((resolve, reject) => {
     const transaction = database.transaction(WEATHER_STORE_NAME, "readwrite");
-    transaction
-      .objectStore(WEATHER_STORE_NAME)
-      .put(validated, weatherKey(location));
+    const store = transaction.objectStore(WEATHER_STORE_NAME);
+    store.put(validated, key);
+    pruneWeatherStore(store, key);
     transaction.addEventListener("complete", () => resolve());
     transaction.addEventListener("error", () => reject(transaction.error));
     transaction.addEventListener("abort", () => reject(transaction.error));

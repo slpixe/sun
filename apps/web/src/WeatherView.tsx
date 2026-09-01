@@ -1,4 +1,5 @@
 import type { ProviderDescriptor, WeatherResponse } from "@weather/contracts";
+import { memo } from "react";
 
 import {
   AirQualityBlock,
@@ -18,7 +19,7 @@ export interface WeatherViewProps {
   message?: string;
 }
 
-export function WeatherView({
+export const WeatherView = memo(function WeatherView({
   weather,
   provider,
   refreshing,
@@ -91,4 +92,4 @@ export function WeatherView({
       />
     </section>
   );
-}
+});
