@@ -7,10 +7,10 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["weather.svg"],
+      includeAssets: ["favicon.png", "apple-touch-icon.png"],
       manifest: {
-        name: "Weather",
-        short_name: "Weather",
+        name: "Sun",
+        short_name: "Sun",
         description: "Compare forecasts from multiple weather providers.",
         theme_color: "#07111f",
         background_color: "#07111f",
@@ -18,9 +18,15 @@ export default defineConfig({
         start_url: "/",
         icons: [
           {
-            src: "/weather.svg",
-            sizes: "any",
-            type: "image/svg+xml",
+            src: "/sun-192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any",
+          },
+          {
+            src: "/sun-512.png",
+            sizes: "512x512",
+            type: "image/png",
             purpose: "any",
           },
         ],
